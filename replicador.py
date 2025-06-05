@@ -1,6 +1,7 @@
 import time
 import fdb
 import os
+import json
 import requests  # biblioteca para requisições HTTP
 
 def ler_connection_txt(caminho_txt):
@@ -22,7 +23,7 @@ def monitorar_logs(dsn_local, user_local, pass_local, api_url, intervalo_segundo
     try:
         while True:
             cur_local.execute("""
-                SELECT ID, TABELA, OPERACAO, DADOS, DATA_ALTERACAO
+                SELECT ID, TABELA, OPERACAO, DADOS, DATA_ALTERACAO, ID_REGISTRO
                 FROM LOG_ALTERACOES
                 WHERE ID > ?
                 ORDER BY ID
@@ -30,15 +31,21 @@ def monitorar_logs(dsn_local, user_local, pass_local, api_url, intervalo_segundo
 
             rows = cur_local.fetchall()
 
-            for id_log, tabela, operacao, dados, data_alteracao in rows:
-                print(f"[{data_alteracao}] {operacao} em {tabela}, ID={id_log}")
+            for id_log, tabela, operacao, dados, data_alteracao, id_registro in rows:
+                print(f"[{data_alteracao}] {operacao} em {tabela}, ID_LOG={id_log}, ID_REGISTRO={id_registro}")
                 print(f"DADOS: {dados}")
+
+                try:
+                    dados_dict = json.loads(dados)
+                except json.JSONDecodeError:
+                    dados_dict = {"raw": dados}  # fallback se não for JSON válido
 
                 payload = {
                     "id_log": id_log,
                     "tabela": tabela,
                     "operacao": operacao,
-                    "dados": dados,
+                    "dados": dados_dict,
+                    "id_registro": id_registro,  # ✅ CAMPO SEPARADO
                     "data_alteracao": str(data_alteracao)
                 }
 
