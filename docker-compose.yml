@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  sync_python:
+    container_name: sync_python_container
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - C:/CONEXAO:/config
+    environment:
+      - CONFIG_PATH=/config/Connection.txt
+    restart: unless-stopped
