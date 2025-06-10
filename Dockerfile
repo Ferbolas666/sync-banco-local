@@ -1,11 +1,20 @@
-FROM python:3.11-slim
+# Use uma imagem base com Python
+FROM python:3.10-slim
 
-RUN apt-get update && \
-    apt-get install -y libfbclient2 firebird-dev gcc && \
-    pip install fdb && \
-    apt-get clean
-
+# Definir diretório de trabalho
 WORKDIR /app
-COPY replicador.py .
 
-CMD ["python", "replicador.py"]
+# Copiar arquivos necessários
+COPY . /app
+
+# Instalar dependências
+RUN pip install --no-cache-dir firebird-driver requests
+
+# Instalar pacote fdb (driver Firebird)
+RUN pip install fdb
+
+# Criar diretório para configuração
+RUN mkdir -p /CONEXAO
+
+# Comando para executar o script
+CMD ["python", "sync-banco-remoto.py"]
